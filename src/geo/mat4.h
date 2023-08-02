@@ -68,18 +68,19 @@ public:
                 0.0f, 0.0f, 0.0f, 1.0f};
     }
 
-    static mat4 rotate(float y, float p, float r) {
-        mat4 yaw(cosf(y), -sinf(y), 0.0f, 0.0f,
-                 sinf(y), cosf(y), 0.0f, 0.0f,
+    // Source: https://en.wikipedia.org/wiki/Rotation_matrix
+    static mat4 rotate(float x, float y, float z) {
+        mat4 yaw(cosf(x), -sinf(x), 0.0f, 0.0f,
+                 sinf(x), cosf(x), 0.0f, 0.0f,
                  0.0f, 0.0f, 1.0f, 0.0f,
                  0.0f, 0.0f, 0.0f, 1.0f);
-        mat4 pitch(cosf(p), 0.0f, sinf(p), 0.0f,
+        mat4 pitch(cosf(y), 0.0f, sinf(y), 0.0f,
                    0.0f, 1.0f, 0.0f, 0.0f,
-                   -sinf(p), 0.0f, cosf(p), 0.0f,
+                   -sinf(y), 0.0f, cosf(y), 0.0f,
                    0.0f, 0.0f, 0.0f, 1.0f);
         mat4 roll(1.0f, 0.0f, 0.0f, 0.0f,
-                  0.0f, cosf(r), -sinf(r), 0.0f,
-                  0.0f, sinf(r), cosf(r), 0.0f,
+                  0.0f, cosf(z), -sinf(z), 0.0f,
+                  0.0f, sinf(z), cosf(z), 0.0f,
                   0.0f, 0.0f, 0.0f, 1.0f);
         return yaw * pitch * roll;
     }
