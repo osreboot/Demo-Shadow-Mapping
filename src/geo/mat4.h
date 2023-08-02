@@ -94,4 +94,29 @@ public:
         };
     }
 
+    // Source: https://learn.microsoft.com/en-us/previous-versions/windows/desktop/bb281711(v=vs.85)
+    static mat4 lookAt(vec3f camera) {
+        static const vec3f up(0.0f, 1.0f, 0.0f);
+        vec3f laz = vec3f::normalize(camera);
+        vec3f lax = vec3f::normalize(vec3f::cross(up, laz));
+        vec3f lay = vec3f::cross(laz, lax);
+        return {
+                lax.x, lax.y, lax.z, -vec3f::dot(lax, camera),
+                lay.x, lay.y, lay.z, -vec3f::dot(lay, camera),
+                laz.x, laz.y, laz.z, -vec3f::dot(laz, camera),
+                0.0f, 0.0f, 0.0f, 1.0f
+        };
+    }
+
+    // Source #1: https://learn.microsoft.com/en-us/previous-versions/windows/desktop/bb281727(v=vs.85)
+    // Source #2: https://gamedev.stackexchange.com/questions/120338/what-does-a-perspective-projection-matrix-look-like-in-opengl
+    static mat4 perspective(float fovDeg, float aspect, float zNear, float zFar) {
+        return {
+                1.0f / (aspect * tanf((fovDeg * (float)M_PI / 180.0f) / 2.0f)), 0.0f, 0.0f, 0.0f,
+                0.0f, 1.0f / tanf((fovDeg * (float)M_PI / 180.0f) / 2.0f), 0.0f, 0.0f,
+                0.0f, 0.0f, -(zFar + zNear) / (zFar - zNear), -(2.0f * zFar * zNear) / (zFar - zNear),
+                0.0f, 0.0f, -1.0f, 0.0f
+        };
+    }
+
 };
