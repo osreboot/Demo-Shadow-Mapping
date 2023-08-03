@@ -9,9 +9,7 @@
 int main() {
     // GLFW and OpenGL initialization
     display::initialize();
-    painter::initialize();
-
-    Shader shaderShadow("res/shadow_mapped.vert", "res/shadow_mapped.frag", [](const GLuint& idProgram){});
+    Painter painter;
 
     std::chrono::high_resolution_clock::time_point timeLast = std::chrono::high_resolution_clock::now(); // Used to calculate per-tick deltas
 
@@ -27,11 +25,24 @@ int main() {
 
         timer += delta;
 
-        mat4 model = mat4::translate(0.0f, 0.0f, 0.0f);
-        mat4 view = mat4::lookAt({cosf(timer) * 10.0f, 2.0f, sinf(timer) * 10.0f});
-        mat4 projection = mat4::perspective(90.0f, 16.0f / 9.0f, 0.1f, 100.0f);
+        mat4 lv = mat4::lookAt({cosf(timer) * 4.0f, 5.0f, sinf(timer) * 4.0f});
+        mat4 lp = mat4::perspective(60.0f, 1.0f, 0.5f, 20.0f);
+        mat4 matLight = lp * lv;
 
-        painter::draw(projection * view * model, shaderShadow, {1.0f, 0.0f, 0.0f, 1.0f});
+        mat4 sv = mat4::lookAt({cosf(timer / 5.0f) * 3.0f, 1.5f, sinf(timer / 5.0f) * 3.0f});
+        mat4 sp = mat4::perspective(90.0f, 16.0f / 9.0f, 1.0f, 10.0f);
+        mat4 matScene = sp * sv;
+
+        std::vector<mat4> mCubes = {
+                mat4::translate(0.0f, -1.0f, 0.0f) * mat4::scale(2.0f, 0.5f, 2.0f),
+                mat4::scale(0.5f, 0.5f, 0.5f),
+                mat4::translate(-1.0f, 1.0f, -1.0f) * mat4::scale(0.3f, 0.3f, 0.3f),
+                mat4::translate(1.0f, 0.8f, -1.2f) * mat4::scale(0.2f, 0.2f, 0.2f),
+                mat4::translate(0.2f, 0.6f, 0.8f) * mat4::scale(0.1f, 0.1f, 0.1f),
+                mat4::translate(-1.0f, 0.3f, 0.8f) * mat4::scale(0.1f, 0.1f, 0.1f),
+                mat4::translate(-0.9f, 0.3f, -0.5f) * mat4::scale(0.1f, 0.1f, 0.1f),
+        };
+        painter.draw(matLight, matScene, mCubes);
 
         display::postUpdate();
     }

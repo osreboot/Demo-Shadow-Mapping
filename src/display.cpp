@@ -38,9 +38,6 @@ namespace display {
         glfwSetMouseButtonCallback(window, callbackMouseButton);
 
         glewInit();
-
-        glEnable(GL_DEPTH_TEST);
-        glDepthFunc(GL_LESS);
     }
 
     void preUpdate() {
@@ -54,10 +51,6 @@ namespace display {
         glfwGetCursorPos(window, &x, &y);
         locationCursor.x = (float)x;
         locationCursor.y = (float)y;
-
-        // Prepare the OpenGL context for rendering
-        glViewport(0, 0, windowSize.x, windowSize.y);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 
     void postUpdate() {

@@ -5,8 +5,7 @@
 
 #include "shader.h"
 
-Shader::Shader(const char *pathVertex, const char *pathFragment, const std::function<void(const GLuint&)>& funcCustomParams) :
-        funcCustomParams(funcCustomParams) {
+Shader::Shader(const char *pathVertex, const char *pathFragment) {
     GLuint idVertexShader = glCreateShader(GL_VERTEX_SHADER);
     GLuint idFragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 
