@@ -17,6 +17,6 @@ public:
     Painter();
     ~Painter();
 
-    void draw(mat4 vpLight, mat4 vpScene, std::vector<mat4>& mCubes);
+    void draw(mat4 vpLight, mat4 vpScene, const std::vector<mat4>& mCubes, const std::vector<vec4f>& cCubes);
 
 };

@@ -38,11 +38,23 @@ int main() {
                 mat4::scale(0.5f, 0.5f, 0.5f),
                 mat4::translate(-1.0f, 1.0f, -1.0f) * mat4::scale(0.3f, 0.3f, 0.3f),
                 mat4::translate(1.0f, 0.8f, -1.2f) * mat4::scale(0.2f, 0.2f, 0.2f),
-                mat4::translate(0.2f, 0.6f, 0.8f) * mat4::scale(0.1f, 0.1f, 0.1f),
-                mat4::translate(-1.0f, 0.3f, 0.8f) * mat4::scale(0.1f, 0.1f, 0.1f),
-                mat4::translate(-0.9f, 0.3f, -0.5f) * mat4::scale(0.1f, 0.1f, 0.1f),
+                mat4::translate(0.2f, 0.7f, 0.8f) * mat4::scale(0.1f, 0.1f, 0.1f),
+                mat4::translate(-1.0f, 0.25f, 0.8f) * mat4::scale(0.1f, 0.1f, 0.1f),
+                mat4::translate(-0.9f, 0.35f, -0.5f) * mat4::scale(0.1f, 0.1f, 0.1f),
+                mat4::translate(1.2f, 0.3f, -0.2f) * mat4::scale(0.1f, 0.1f, 0.1f),
         };
-        painter.draw(matLight, matScene, mCubes);
+        std::vector<vec4f> cCubes = {
+                {0.5f, 0.5f, 0.5f, 1.0f},
+                {0.6f, 0.6f, 0.6f, 1.0f},
+                {0.5f, 1.0f, 0.5f, 1.0f},
+                {1.0f, 0.5f, 0.5f, 1.0f},
+                {1.0f, 1.0f, 0.5f, 1.0f},
+                {1.0f, 0.5f, 1.0f, 1.0f},
+                {0.5f, 0.5f, 1.0f, 1.0f},
+                {0.5f, 1.0f, 1.0f, 1.0f},
+
+        };
+        painter.draw(matLight, matScene, mCubes, cCubes);
 
         display::postUpdate();
     }

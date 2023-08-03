@@ -88,7 +88,7 @@ Painter::Painter() :
 
 Painter::~Painter() = default;
 
-void Painter::draw(mat4 vpLight, mat4 vpScene, std::vector<mat4>& mCubes) {
+void Painter::draw(mat4 vpLight, mat4 vpScene, const std::vector<mat4>& mCubes, const std::vector<vec4f>& cCubes) {
     glBindFramebuffer(GL_FRAMEBUFFER, idFrameBuffer);
     glViewport(0, 0, 4096, 4096);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -126,13 +126,13 @@ void Painter::draw(mat4 vpLight, mat4 vpScene, std::vector<mat4>& mCubes) {
     glBindBuffer(GL_ARRAY_BUFFER, idVertexBuffer);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 
-    for(mat4 mCube : mCubes) {
-        mat4 mvpScene = vpScene * mCube;
-        mat4 vpLightBias = mat4::translate(0.5f, 0.5f, 0.5f) * mat4::scale(0.5f, 0.5f, 0.5f) * vpLight * mCube;
+    for(int i = 0; i < mCubes.size(); i++) {
+        mat4 mvpScene = vpScene * mCubes[i];
+        mat4 vpLightBias = mat4::translate(0.5f, 0.5f, 0.5f) * mat4::scale(0.5f, 0.5f, 0.5f) * vpLight * mCubes[i];
 
-        glUniformMatrix4fv(glGetUniformLocation(shaderShadow.getProgramId(), "mvp"), 1, GL_TRUE, &mvpScene[0][0]);
-        glUniformMatrix4fv(glGetUniformLocation(shaderShadow.getProgramId(), "mvpBias"), 1, GL_TRUE, &vpLightBias[0][0]);
-        glUniform4f(glGetUniformLocation(shaderShadow.getProgramId(), "colorize"), 0.7f, 0.7f, 0.7f, 1.0f);
+        glUniformMatrix4fv(glGetUniformLocation(shaderShadow.getProgramId(), "mvpScene"), 1, GL_TRUE, &mvpScene[0][0]);
+        glUniformMatrix4fv(glGetUniformLocation(shaderShadow.getProgramId(), "mvpLightBias"), 1, GL_TRUE, &vpLightBias[0][0]);
+        glUniform4f(glGetUniformLocation(shaderShadow.getProgramId(), "colorize"), cCubes[i][0], cCubes[i][1], cCubes[i][2], cCubes[i][3]);
 
         // Draw the cube
         glDrawArrays(GL_TRIANGLES, 0, sizeof(VERTICES_CUBE) / (3 * sizeof(GLfloat)));
