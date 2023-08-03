@@ -5,7 +5,6 @@
 #include "geo/mat4.h"
 #include "display.h"
 
-
 const GLfloat VERTICES_CUBE[] = {
         -1.0f, -1.0f, -1.0f,
         -1.0f, -1.0f,  1.0f,
@@ -60,6 +59,28 @@ Painter::Painter() :
     glBindBuffer(GL_ARRAY_BUFFER, idVertexBuffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(VERTICES_CUBE), VERTICES_CUBE, GL_STATIC_DRAW);
 
+    std::vector<GLfloat> normalsCube(sizeof(VERTICES_CUBE) / sizeof(GLfloat), 0.0f);
+    for(int i = 0; i < sizeof(VERTICES_CUBE) / sizeof(GLfloat); i += 9){
+        vec3f p0 = {VERTICES_CUBE[i], VERTICES_CUBE[i + 1], VERTICES_CUBE[i + 2]};
+        vec3f p1 = {VERTICES_CUBE[i + 3], VERTICES_CUBE[i + 4], VERTICES_CUBE[i + 5]};
+        vec3f p2 = {VERTICES_CUBE[i + 6], VERTICES_CUBE[i + 7], VERTICES_CUBE[i + 8]};
+        vec3f n = vec3f::normalize(vec3f::cross(p0 - p1, p2 - p1));
+        normalsCube[i] = n.x;
+        normalsCube[i + 1] = n.y;
+        normalsCube[i + 2] = n.z;
+        normalsCube[i + 3] = n.x;
+        normalsCube[i + 4] = n.y;
+        normalsCube[i + 5] = n.z;
+        normalsCube[i + 6] = n.x;
+        normalsCube[i + 7] = n.y;
+        normalsCube[i + 8] = n.z;
+    }
+
+    idNormalBuffer = 0;
+    glGenBuffers(1, &idNormalBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, idNormalBuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(VERTICES_CUBE), &normalsCube[0], GL_STATIC_DRAW);
+
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 
@@ -88,7 +109,10 @@ Painter::Painter() :
 
 Painter::~Painter() = default;
 
-void Painter::draw(mat4 vpLight, mat4 vpScene, const std::vector<mat4>& mCubes, const std::vector<vec4f>& cCubes) {
+void Painter::draw(vec3f lLight, mat4 pLight, mat4 vScene, mat4 pScene,
+                   const std::vector<mat4>& mCubes, const std::vector<vec4f>& cCubes) {
+    mat4 vLight = mat4::lookAt(lLight);
+
     glBindFramebuffer(GL_FRAMEBUFFER, idFrameBuffer);
     glViewport(0, 0, 4096, 4096);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -101,7 +125,7 @@ void Painter::draw(mat4 vpLight, mat4 vpScene, const std::vector<mat4>& mCubes, 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 
     for(mat4 mCube : mCubes) {
-        mat4 mvpLight = vpLight * mCube;
+        mat4 mvpLight = pLight * vLight * mCube;
         glUniformMatrix4fv(glGetUniformLocation(shaderLight.getProgramId(), "mvp"), 1, GL_TRUE, &mvpLight[0][0]);
 
         // Draw the cube
@@ -126,12 +150,20 @@ void Painter::draw(mat4 vpLight, mat4 vpScene, const std::vector<mat4>& mCubes, 
     glBindBuffer(GL_ARRAY_BUFFER, idVertexBuffer);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 
+    glEnableVertexAttribArray(1);
+    glBindBuffer(GL_ARRAY_BUFFER, idNormalBuffer);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+
     for(int i = 0; i < mCubes.size(); i++) {
-        mat4 mvpScene = vpScene * mCubes[i];
-        mat4 vpLightBias = mat4::translate(0.5f, 0.5f, 0.5f) * mat4::scale(0.5f, 0.5f, 0.5f) * vpLight * mCubes[i];
+        mat4 m = mCubes[i];
+        mat4 mvpScene = pScene * vScene * m;
+        mat4 mvpLightBias = mat4::translate(0.5f, 0.5f, 0.5f) * mat4::scale(0.5f, 0.5f, 0.5f) * pLight * vLight * m;
 
         glUniformMatrix4fv(glGetUniformLocation(shaderShadow.getProgramId(), "mvpScene"), 1, GL_TRUE, &mvpScene[0][0]);
-        glUniformMatrix4fv(glGetUniformLocation(shaderShadow.getProgramId(), "mvpLightBias"), 1, GL_TRUE, &vpLightBias[0][0]);
+        glUniformMatrix4fv(glGetUniformLocation(shaderShadow.getProgramId(), "m"), 1, GL_TRUE, &m[0][0]);
+        glUniformMatrix4fv(glGetUniformLocation(shaderShadow.getProgramId(), "vScene"), 1, GL_TRUE, &vScene[0][0]);
+        glUniformMatrix4fv(glGetUniformLocation(shaderShadow.getProgramId(), "mvpLightBias"), 1, GL_TRUE, &mvpLightBias[0][0]);
+        glUniform3f(glGetUniformLocation(shaderShadow.getProgramId(), "lLight"), lLight.x, lLight.y, lLight.z);
         glUniform4f(glGetUniformLocation(shaderShadow.getProgramId(), "colorize"), cCubes[i][0], cCubes[i][1], cCubes[i][2], cCubes[i][3]);
 
         // Draw the cube
@@ -140,4 +172,5 @@ void Painter::draw(mat4 vpLight, mat4 vpScene, const std::vector<mat4>& mCubes, 
 
     // Unbind cube vertices
     glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
 }

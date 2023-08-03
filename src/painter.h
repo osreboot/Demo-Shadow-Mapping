@@ -7,6 +7,8 @@ class Painter {
 
 private:
     GLuint idVertexBuffer;
+    GLuint idNormalBuffer;
+
     GLuint idFrameBuffer;
     GLuint idTextureDepth;
 
@@ -17,6 +19,6 @@ public:
     Painter();
     ~Painter();
 
-    void draw(mat4 vpLight, mat4 vpScene, const std::vector<mat4>& mCubes, const std::vector<vec4f>& cCubes);
+    void draw(vec3f lLight, mat4 pLight, mat4 vScene, mat4 pScene, const std::vector<mat4>& mCubes, const std::vector<vec4f>& cCubes);
 
 };
