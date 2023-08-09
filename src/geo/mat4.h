@@ -6,6 +6,10 @@
 #include "vec4f.h"
 #include "vec3f.h"
 
+#ifndef M_PI
+    #define M_PI 3.14159265358979323846
+#endif
+
 class mat4 {
 
 private:

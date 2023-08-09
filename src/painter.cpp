@@ -51,14 +51,17 @@ Painter::Painter() :
     glGenVertexArrays(1, &idVertexArray);
     glBindVertexArray(idVertexArray);
 
+    // Enable alpha blending
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+    // Reserve buffer for cube vertices
     idVertexBuffer = 0;
     glGenBuffers(1, &idVertexBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, idVertexBuffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(VERTICES_CUBE), VERTICES_CUBE, GL_STATIC_DRAW);
 
+    // Calculate normals of cube triangles
     std::vector<GLfloat> normalsCube(sizeof(VERTICES_CUBE) / sizeof(GLfloat), 0.0f);
     for(int i = 0; i < sizeof(VERTICES_CUBE) / sizeof(GLfloat); i += 9){
         vec3f p0 = {VERTICES_CUBE[i], VERTICES_CUBE[i + 1], VERTICES_CUBE[i + 2]};
@@ -76,21 +79,26 @@ Painter::Painter() :
         normalsCube[i + 8] = n.z;
     }
 
+    // Reserve buffer for cube normals
     idNormalBuffer = 0;
     glGenBuffers(1, &idNormalBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, idNormalBuffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(VERTICES_CUBE), &normalsCube[0], GL_STATIC_DRAW);
 
+    // Enable depth testing
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 
+    // Enable backface culling
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
 
+    // Reserve framebuffer for lightmap depth testing
     idFrameBuffer = 0;
     glGenFramebuffers(1, &idFrameBuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, idFrameBuffer);
 
+    // Create lightmap depth texture
     idTextureDepth = 0;
     glGenTextures(1, &idTextureDepth);
     glBindTexture(GL_TEXTURE_2D, idTextureDepth);
@@ -102,6 +110,7 @@ Painter::Painter() :
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
 
+    // Attach lightmap depth texture to lightmap frame buffer
     glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, idTextureDepth, 0);
 
     glDrawBuffer(GL_NONE);
@@ -113,6 +122,7 @@ void Painter::draw(vec3f lLight, mat4 pLight, mat4 vScene, mat4 pScene,
                    const std::vector<mat4>& mCubes, const std::vector<vec4f>& cCubes) {
     mat4 vLight = mat4::lookAt(lLight);
 
+    // Bind lightmap framebuffer
     glBindFramebuffer(GL_FRAMEBUFFER, idFrameBuffer);
     glViewport(0, 0, 4096, 4096);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -124,6 +134,7 @@ void Painter::draw(vec3f lLight, mat4 pLight, mat4 vScene, mat4 pScene,
     glBindBuffer(GL_ARRAY_BUFFER, idVertexBuffer);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 
+    // Render cubes
     for(mat4 mCube : mCubes) {
         mat4 mvpLight = pLight * vLight * mCube;
         glUniformMatrix4fv(glGetUniformLocation(shaderLight.getProgramId(), "mvp"), 1, GL_TRUE, &mvpLight[0][0]);
@@ -135,12 +146,14 @@ void Painter::draw(vec3f lLight, mat4 pLight, mat4 vScene, mat4 pScene,
     // Unbind cube vertices
     glDisableVertexAttribArray(0);
 
+    // Bind default framebuffer
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(0, 0, display::getSize().x, display::getSize().y);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glUseProgram(shaderShadow.getProgramId());
 
+    // Use the lightmap depth texture
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, idTextureDepth);
     glUniform1i(glGetUniformLocation(shaderShadow.getProgramId(), "textureShadow"), 0);
@@ -150,10 +163,12 @@ void Painter::draw(vec3f lLight, mat4 pLight, mat4 vScene, mat4 pScene,
     glBindBuffer(GL_ARRAY_BUFFER, idVertexBuffer);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 
+    // Bind the cube normals
     glEnableVertexAttribArray(1);
     glBindBuffer(GL_ARRAY_BUFFER, idNormalBuffer);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 
+    // Render cubes
     for(int i = 0; i < mCubes.size(); i++) {
         mat4 m = mCubes[i];
         mat4 mvpScene = pScene * vScene * m;
